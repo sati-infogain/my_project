@@ -46,11 +46,11 @@ jobs:
         run: |
           PR_URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pr_number }}"
           echo "Fetching PR metadata from $PR_URL"
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }} "                -H "Accept: application/vnd.github+json"                $PR_URL > pr_metadata.json
+          curl -H "Authorization: token ${{ secrets.MY_GITHUB_TOKEN }} "                -H "Accept: application/vnd.github+json"                $PR_URL > pr_metadata.json
           cat pr_metadata.json
 
       - name: Post Comment on PR
         run: |
           COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments"
           COMMENT_BODY='{"body": "Automated review triggered for PR #${{ inputs.pr_number }} on branch ${{ inputs.branch_name }}"}'
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"                -H "Accept: application/vnd.github+json"                -d "$COMMENT_BODY" $COMMENT_URL
+          curl -X POST -H "Authorization: token ${{ secrets.MY_GITHUB_TOKEN }}"                -H "Accept: application/vnd.github+json"                -d "$COMMENT_BODY" $COMMENT_URL
