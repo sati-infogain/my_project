@@ -2,7 +2,6 @@
 name: PR Review Dispatcher
 
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
@@ -18,41 +17,40 @@ on:
         required: true
         type: string
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   review-pr:
     runs-on: ubuntu-latest
-    
-    # Steps represent a sequence of tasks that will be executed as part of the job
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch_name }}
 
-      # Runs a single command using the runners shell
       - name: Simulate Validation Step
-        run: echo "Validating PR #${{ inputs.pr_number }} on branch ${{ inputs.branch_name }}"
+        run: |
+          PR_NUMBER="${{ github.event.inputs.pr_number || github.event.pull_request.number || 'N/A' }}"
+          BRANCH_NAME="${{ github.event.inputs.branch_name || github.head_ref || github.ref_name || 'N/A' }}"
+          echo "Validating PR #${PR_NUMBER} on branch ${BRANCH_NAME}"
 
-      # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo Hello, world!
+        run: echo "Hello, world!"
 
-      # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "Add other actions to build,"
+          echo "test, and deploy your project."
 
       - name: Fetch PR Metadata
         id: fetch_pr
         run: |
           PR_URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pr_number }}"
-          #PR_METADATA=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" $PR_URL)
-          #echo "::set-output name=pr_metadata::$PR_METADATA"
+          echo "Fetching PR metadata from $PR_URL"
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }} "                -H "Accept: application/vnd.github+json"                $PR_URL > pr_metadata.json
+          cat pr_metadata.json
 
       - name: Post Comment on PR
         run: |
           COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments"
           COMMENT_BODY='{"body": "Automated review triggered for PR #${{ inputs.pr_number }} on branch ${{ inputs.branch_name }}"}'
-          #curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" -d "$COMMENT_BODY" $COMMENT_URL
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"                -H "Accept: application/vnd.github+json"                -d "$COMMENT_BODY" $COMMENT_URL
